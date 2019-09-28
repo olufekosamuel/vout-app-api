@@ -1,1 +1,1 @@
-web: gunicorn comapi.wsgi --log-file -
+web: gunicorn voiceout.wsgi --log-file -
