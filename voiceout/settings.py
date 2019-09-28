@@ -134,6 +134,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
@@ -147,7 +148,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-
+SITE_ID=1
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
