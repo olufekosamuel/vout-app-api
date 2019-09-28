@@ -10,8 +10,8 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth import authenticate
 
 class UserLoginSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(validators=[UniqueValidator(queryset=CustomUser.objects.all())])
-    password = serializers.CharField(min_length=8)
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
     
     default_error_messages = {
         'inactive_account': 'User account is disabled.',
@@ -34,6 +34,12 @@ class UserLoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ('username', 'email', 'password',)
+    
+    
+    def create(self, request):
+        self.save()              
+        return JsonResponse({'message': 'Your account has been created successfully, you are now logged in','error':False,'status':status.HTTP_200_OK,'data': serializer.data, 'token': jwt_encode_handler(jwt_payload_handler(user)),})
+
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
