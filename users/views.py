@@ -26,22 +26,16 @@ class UserListView(generics.ListCreateAPIView):
         password = request.data.get("password", "")
         password2 = request.data.get("password2", "")
         email = request.data.get("email", "")
-        if not username:
+
+        if not username or not password or not email or not password2:
             return Response(
-                {'message': "username is required to register a user",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+                {'message': "username, email and passwords are required to register",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
             )
-        elif not email:
-            return Response(
-                {'message': "email is required to register a user",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
-            )
-        elif not password:
-            return Response(
-                {'message': "password is required to register a user",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
-            )
-        elif password != password2:
-            return Response(
-                {'message': "Those passwords don't match.",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
-            )
+        else:
+            if password != password2:
+                return Response(
+                    {'message': "Those passwords don't match.",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+                )
 
         try:
             user = CustomUser.objects.get(username=username)
