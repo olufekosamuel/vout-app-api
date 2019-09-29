@@ -20,16 +20,55 @@ class UserListView(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        
+    def post(self, request, *args, **kwargs):
+        username = request.data.get("username", "")
+        password = request.data.get("password", "")
+        password2 = request.data.get("password2", "")
+        email = request.data.get("email", "")
+        if not username:
+            return Response(
+                {'message': "username is required to register a user",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+            )
+        elif not email:
+            return Response(
+                {'message': "email is required to register a user",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+            )
+        elif not password:
+            return Response(
+                {'message': "password is required to register a user",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+            )
+        elif password != password2:
+            return Response(
+                {'message': "Those passwords don't match.",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+            )
 
-        user = serializer.instance
-        data = serializer.data
-        headers = self.get_success_headers(serializer.data)
+        try:
+            user = CustomUser.objects.get(username=username)
+            return Response(
+                {'message': "Username has been taken already",'error':True,'status':status.HTTP_401_UNAUTHORIZED}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        except CustomUser.DoesNotExist:
+            pass
 
-        return Response({'message': 'Your account has been created successfully','error':False,'status':status.HTTP_200_OK,'data':data,})
+        try:
+            user = CustomUser.objects.get(email=email)
+            return Response(
+                {'message': "Username has been taken already",'error':True,'status':status.HTTP_401_UNAUTHORIZED},status=status.HTTP_401_UNAUTHORIZED
+            )
+        except CustomUser.DoesNotExist:
+            pass
+        
+        new_user = CustomUser.objects.create_user(
+            username=username, password=password, email=email
+        )
+
+        data = {
+            'id': new_user.id,
+            'username': new_user.username,
+            'email': new_user.email
+        }
+        return Response({'message': 'Your account has been created successfully','error':False,'status':status.HTTP_201_CREATED,'data':data,})
 
 class LoginView(generics.CreateAPIView):
     """
