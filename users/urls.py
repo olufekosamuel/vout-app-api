@@ -8,6 +8,7 @@ from rest_framework.routers import DefaultRouter
 app_name = "users"
 
 urlpatterns = [
-    path('register/', UserRegistrationAPIView.as_view(), name="register"),
-    path('login/', UserLoginAPIView.as_view(), name="login"),
+    path('register/', UserListView.as_view(), name="register"),
+    path('login/', LoginView.as_view(), name="login"),
+    path('logout/', LogoutView.as_view(), name="logout"),
 ]
