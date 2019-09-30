@@ -75,7 +75,7 @@ class LoginView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserLoginSerializer
 
-
+    @csrf_exempt
     def post(self, request):
         username = request.data.get("username", "")
         password = request.data.get("password", "")
