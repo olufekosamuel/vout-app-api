@@ -78,7 +78,7 @@ class LoginView(generics.CreateAPIView):
     @csrf_exempt
     def post(self, request):
         username = request.data["username"]
-        password = request.data.["password"]
+        password = request.data["password"]
         try:
             user = CustomUser.objects.get(username=username, password=password)
         except CustomUser.DoesNotExist:
