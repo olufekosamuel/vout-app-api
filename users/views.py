@@ -79,11 +79,13 @@ class LoginView(generics.CreateAPIView):
     def post(self, request):
         username = request.data.get("username", "")
         password = request.data.get("password", "")
-        user = authenticate(request, username=username, password=password)
+        try:
+            user = User.objects.get(username=username, password=password)
+        except User.DoesNotExist:
+            return Response({'message': 'Wrong credentials','error':True,'status':status.HTTP_401_UNAUTHORIZED})
         if user is not None:
             # login saves the user’s ID in the session,
             # using Django’s session framework.
-            login(request, user)
             serializer = TokenSerializer(data={
                 # using drf jwt utility functions to generate a token
                 "token": jwt_encode_handler(
@@ -92,7 +94,6 @@ class LoginView(generics.CreateAPIView):
             if serializer.is_valid():
                 return JsonResponse({'message': 'logged in','error':False,'status':status.HTTP_200_OK,'data':serializer.data,})
         return Response({'message': 'Wrong credentials','error':True,'status':status.HTTP_401_UNAUTHORIZED})
-
 
 class LogoutView(APIView):
     def get(self, request, format=None):
