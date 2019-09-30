@@ -78,10 +78,8 @@ class LoginView(generics.CreateAPIView):
     def post(self, request):
         username = request.data["username"]
         password = request.data["password"]
-        try:
-            user = CustomUser.objects.get(username=username, password=password)
-        except CustomUser.DoesNotExist:
-            return Response({'message': 'does not exist','error':True,'status':status.HTTP_401_UNAUTHORIZED})
+        
+        user = authenticate(request, username=username, password=password)
         if user is not None:
             # login saves the user’s ID in the session,
             # using Django’s session framework.
