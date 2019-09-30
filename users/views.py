@@ -96,8 +96,5 @@ class LoginView(generics.CreateAPIView):
 
 class LogoutView(APIView):
     def get(self, request, format=None):
-        if request.user.is_authenticated():
-            logout(request)
-            return Response({'message': 'Your account has been logged out successfully','error':False,'status':status.HTTP_200_OK})
-        else:
-            return Response({'message': 'Your account is not logged in','error':False,'status':status.HTTP_200_OK})
+        logout(request)
+        return Response({'message': 'Your account has been logged out successfully','error':False,'status':status.HTTP_200_OK})
