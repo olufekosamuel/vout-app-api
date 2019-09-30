@@ -93,6 +93,7 @@ class LoginView(generics.CreateAPIView):
                 return JsonResponse({'message': 'logged in','error':False,'status':status.HTTP_200_OK,'data':serializer.data,})
         return Response({'message': 'Wrong credentials','error':True,'status':status.HTTP_401_UNAUTHORIZED})
 
+
 class LogoutView(APIView):
     def get(self, request, format=None):
         if request.user.is_authenticated():
