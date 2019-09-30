@@ -99,6 +99,4 @@ class LogoutView(APIView):
             logout(request)
             return Response({'message': 'Your account has been logged out successfully','error':False,'status':status.HTTP_200_OK})
         else:
-            return Response({'message': 'You are not logged in','error':True,'status':status.HTTP_401_UNAUTHORIZED})
-    def post(self, request):
-        return Response({'message': 'post request not allowed','error':True,'status':status.HTTP_401_UNAUTHORIZED})
+            return Response({'message': 'Your account is not logged in','error':False,'status':status.HTTP_200_OK})
