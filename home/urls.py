@@ -9,4 +9,6 @@ app_name = "home"
 
 urlpatterns = [
     path('create/', CreateChannel, name='createchannel'),
+    path('verify/',VerifyChannel, name='verify'),
+    path('',ListChannelView.as_view(), name='channel' ),
 ]

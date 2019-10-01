@@ -17,6 +17,14 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 
+from django.conf.urls import (handler400, handler403, handler404, handler500)
+from django.conf.urls.static import static
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from home.views import handler404, Handler500
+from django.conf import settings
+
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/obtain_token/', obtain_jwt_token),
@@ -24,3 +32,5 @@ urlpatterns = [
     path('api/users/',include('users.urls')),
     path('api/channels/',include('home.urls')),
 ]
+
+
