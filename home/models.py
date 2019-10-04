@@ -41,3 +41,27 @@ class ChannelUsers(models.Model):
     def __str__(self):
         return self.user.email
 
+class ChannelComplain(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    Channel = models.ForeignKey(Channel,on_delete=models.CASCADE)
+    user = models.ForeignKey(ChannelUsers,on_delete=models.CASCADE)
+    is_verified = models.BooleanField(default=False)
+    is_irrelevant = models.BooleanField(default=False)
+    is_solved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now, null=False)
+    updated_at = models.DateTimeField(default=timezone.now, null=False)
+
+    def __str__(self):
+        return self.title
+
+class ChannelComplainComment(models.Model):
+    Complain = models.ForeignKey(ChannelComplain,on_delete=models.CASCADE)
+    user = models.ForeignKey(ChannelUsers,on_delete=models.CASCADE)
+    description = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now, null=False)
+    updated_at = models.DateTimeField(default=timezone.now, null=False)
+
+    def __str__(self):
+        return self.description
+
