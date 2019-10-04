@@ -7,3 +7,8 @@ class ChannelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Channel
         fields = '__all__'
+
+class ComplainSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChannelComplain
+        fields = '__all__'

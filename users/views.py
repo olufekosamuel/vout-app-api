@@ -24,18 +24,26 @@ jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 @permission_classes((permissions.AllowAny, ))
 def Registration(request):
     if request.method == "POST":
-        username = request.data.get("username", "")
+        fullname = request.data.get("fullname", "")
         password = request.data.get("password", "")
         password2 = request.data.get("password2", "")
         email = request.data.get("email", "")
+        country = request.data.get("user_country", "")
+        state = request.data.get("user_state", "")
         name = request.data.get("channel_name", "")
         channel_type = request.data.get("channel_type", "")
         url = request.data.get("channel_url", "")
+        channel_country = request.data.get("channel_country", "")
+        channel_state = request.data.get("channel_state", "")
         capacity = 1
 
-        if not username or not password or not email or not password2 or not name or not channel_type or not url:
+        if not fullname or not password or not email or not password2 or not country or not state:
             return Response(
-                {'message': "username, email, passwords, channel name and type are required to register",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+                {'message': "fullname, email, passwords and location are required to register",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+            )
+        elif not name or not channel_type or not url or not channel_country or not channel_state:
+            return Response(
+                {'message': "channel name, type, url and location are required to register",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
             )
         else:
             if password != password2:
@@ -44,17 +52,9 @@ def Registration(request):
                 )
 
         try:
-            user = CustomUser.objects.get(username=username)
-            return Response(
-                {'message': "Username has been taken already",'error':True,'status':status.HTTP_401_UNAUTHORIZED}, status=status.HTTP_401_UNAUTHORIZED
-            )
-        except CustomUser.DoesNotExist:
-            pass
-
-        try:
             user = CustomUser.objects.get(email=email)
             return Response(
-                {'message': "Username has been taken already",'error':True,'status':status.HTTP_401_UNAUTHORIZED},status=status.HTTP_401_UNAUTHORIZED
+                {'message': "Email has been taken already",'error':True,'status':status.HTTP_401_UNAUTHORIZED},status=status.HTTP_401_UNAUTHORIZED
             )
         except CustomUser.DoesNotExist:
             pass
@@ -65,15 +65,23 @@ def Registration(request):
         except Channel.DoesNotExist:
             pass
         
-        new_user = CustomUser.objects.create_user(
-            username=username, password=password, email=email
-        )
+        firstname = fullname.split()[0]
+        lastname = fullname.split()[1] if len(fullname.split()) > 1 else fullname.split()[0]
+
+        new_user = CustomUser(email=email)
+        new_user.set_password(password)
+        new_user.first_name = firstname
+        new_user.last_name = lastname
+        new_user.country = country
+        new_user.state = state
+        new_user.save()
+
         if channel_type == 1:
             channel_type = 'private'
         else:
             channel_type = 'public'
         
-        channel = Channel.objects.create(admin=new_user,name=name,url=url,capacity=capacity,channel_type=channel_type)
+        channel = Channel.objects.create(admin=new_user,name=name,url=url,capacity=capacity,channel_type=channel_type,country=country,state=state)
         channel.save()
 
         channeluser = ChannelUsers.objects.create(channel=channel,user=new_user,role='admin')
@@ -81,28 +89,37 @@ def Registration(request):
 
         data = {
             'id': new_user.id,
-            'username': new_user.username,
+            'full name': fullname,
             'email': new_user.email,
             'channel_name': channel.name,
         }
 
         return Response({'message': 'Your account and channel has been created successfully','error':False,'status':status.HTTP_201_CREATED,'data':data,})
 
+@api_view(['POST'])
+@csrf_exempt
+@permission_classes((permissions.AllowAny, ))
+def RegistrationForExistingChannel(request):
+    pass
 
+
+"""
 @api_view(['POST'])
 @csrf_exempt
 @permission_classes((permissions.AllowAny, ))
 def RegistrationForExistingChannel(request):
     if request.method == "POST":
-        username = request.data.get("username", "")
+        fullname = request.data.get("fullname", "")
         password = request.data.get("password", "")
         password2 = request.data.get("password2", "")
+        country = request.data.get("country", "")
+        state = request.data.get("state", "")
         email = request.data.get("email", "")
         url = request.data.get("channel_url", "")
 
-        if not username or not password or not email or not password2 or not url:
+        if not fullname or not password or not email or not password2 or not url or not country or not state:
             return Response(
-                {'message': "username, email and passwords are required to register",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+                {'message': "fullname, email, passwords are required to register",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
             )
         else:
             if password != password2:
@@ -111,17 +128,9 @@ def RegistrationForExistingChannel(request):
                 )
 
         try:
-            user = CustomUser.objects.get(username=username)
-            return Response(
-                {'message': "Username has been taken already",'error':True,'status':status.HTTP_401_UNAUTHORIZED}, status=status.HTTP_401_UNAUTHORIZED
-            )
-        except CustomUser.DoesNotExist:
-            pass
-
-        try:
             user = CustomUser.objects.get(email=email)
             return Response(
-                {'message': "Username has been taken already",'error':True,'status':status.HTTP_401_UNAUTHORIZED},status=status.HTTP_401_UNAUTHORIZED
+                {'message': "Email has been taken already",'error':True,'status':status.HTTP_401_UNAUTHORIZED},status=status.HTTP_401_UNAUTHORIZED
             )
         except CustomUser.DoesNotExist:
             pass
@@ -145,7 +154,7 @@ def RegistrationForExistingChannel(request):
         }
 
         return Response({'message': 'Your account has been created and you have joined the channel successfully','error':False,'status':status.HTTP_201_CREATED,'data':data,})
-
+"""
 class UserListView(generics.ListCreateAPIView):
     permission_classes = (permissions.AllowAny,)
     queryset = CustomUser.objects.all()
@@ -206,10 +215,10 @@ class LoginView(generics.CreateAPIView):
     serializer_class = UserLoginSerializer
 
     def post(self, request):
-        username = request.data["username"]
+        email = request.data["email"]
         password = request.data["password"]
         
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, email=email, password=password)
         if user is not None:
             # login saves the user’s ID in the session,
             # using Django’s session framework.

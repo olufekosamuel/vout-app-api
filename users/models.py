@@ -4,8 +4,15 @@ from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 class CustomUser(AbstractUser):
-    created_at = models.DateTimeField(default=timezone.now, null=False)
-    updated_at = models.DateTimeField(default=timezone.now, null=False)
-    
+    country = models.CharField(default='',max_length=200)
+    state = models.CharField(default='',max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    username = None
+    email = models.EmailField(('email address'), unique=True)
+
     def __str__(self):
         return self.email
+    
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []

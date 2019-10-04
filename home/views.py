@@ -12,6 +12,7 @@ from django.core import serializers
 from rest_framework.exceptions import NotFound
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import exception_handler
+from django.http import HttpResponse
 
 def handler404(request, exception):
     raise NotFound(detail="Error 404, page not found", code=404)
@@ -28,8 +29,11 @@ def custom_exception_handler(exc, context):
     if response is not None:
         response.data['status'] = response.status_code
         response.data['error'] = True
-        response.data['message'] = "JWT token was not provided"
         if response.status_code == 401:
+            response.data['message'] = response.data['detail']
+            del response.data['detail']
+        elif response.status_code == 405:
+            response.data['message'] = response.data['detail']
             del response.data['detail']
 
     return response
@@ -73,6 +77,7 @@ def CreateChannel(request):
         
         return JsonResponse({'message': 'Your channel has been created successfully','data':data,'error':False,'status':status.HTTP_200_OK},status=status.HTTP_200_OK)
 
+
 @api_view(['POST'])
 @csrf_exempt
 @permission_classes((permissions.AllowAny, ))
@@ -89,6 +94,24 @@ def VerifyChannel(request):
             except Channel.DoesNotExist:
                 return JsonResponse({'message': 'Channel does not exist','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['POST','GET'])
+@csrf_exempt
+@permission_classes((permissions.IsAuthenticated, ))
+def Complain(request, channel_id):
+    if request.method == "POST": 
+        pass
+    else:
+        try:
+            chanel = Channel.objects.get(id=channel_id)
+            channeluser = ChannelUsers.objects.get(user=request.user,channel=chanel)
+        except Channel.DoesNotExist:
+            return JsonResponse({'message': 'Channel does not exist','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+        except ChannelUsers.DoesNotExist:
+            return JsonResponse({'message': 'You dont have access to this channel','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+        complains = ChannelComplain.objects.filter(Channel=chanel).order_by('created_at').first()
+        data = ComplainSerializer(complains, many=True)
+        return Response({'message': 'Success','error':False,'status':status.HTTP_200_OK, 'data':data.data}, status=status.HTTP_200_OK)
+
 @api_view(['GET'])
 @csrf_exempt
 @permission_classes((permissions.IsAuthenticated, ))
@@ -100,7 +123,9 @@ def ComplainList(request):
             return JsonResponse({'message': 'You have not joined any channel','error':False,'status':status.HTTP_200_OK, 'data':[]}, status=status.HTTP_200_OK)
         else:
             data = ChannelComplain.objects.filter(user__user__email=request.user.email)
-            return Response({'message': 'Success','error':False,'status':status.HTTP_200_OK, 'data':data}, status=status.HTTP_200_OK)
+            data = ComplainSerializer(data, many=True)
+            return Response({'message': 'Success','error':False,'status':status.HTTP_200_OK, 'data':data.data}, status=status.HTTP_200_OK)
+            
 
 @api_view(['GET'])
 @csrf_exempt
