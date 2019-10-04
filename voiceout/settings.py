@@ -107,7 +107,7 @@ REST_FRAMEWORK = {
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         
     ),
-
+    'EXCEPTION_HANDLER': 'home.views.custom_exception_handler'
 }
 
 

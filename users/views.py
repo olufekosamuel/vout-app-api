@@ -32,11 +32,10 @@ def Registration(request):
         channel_type = request.data.get("channel_type", "")
         url = request.data.get("channel_url", "")
         capacity = 1
-        slug = request.data.get("slug", "")
 
         if not username or not password or not email or not password2 or not name or not channel_type or not url:
             return Response(
-                {'message': "username, email and passwords are required to register",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+                {'message': "username, email, passwords, channel name and type are required to register",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
             )
         else:
             if password != password2:
@@ -62,7 +61,7 @@ def Registration(request):
 
         try:
             chanel = Channel.objects.get(name__iexact=name)
-            return JsonResponse({'message': 'Channel name taken already','error':False,'status':status.HTTP_200_OK}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'message': 'Channel name taken already','error':False,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
         except Channel.DoesNotExist:
             pass
         
