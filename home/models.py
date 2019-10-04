@@ -7,15 +7,15 @@ from users.models import CustomUser
 
 
 CHANNEL_TYPE= (
-    (0, 'private'),
-    (1, 'public'),
+    ('private', 'private'),
+    ('public', 'public'),
 )
 
 ROLE_TYPE= (
-    (0, 'admin'),
-    (1, 'super_admin'),
-    (2, 'sub_admin'),
-    (3, 'user'),
+    ('admin', 'admin'),
+    ('super_admin', 'super_admin'),
+    ('sub_admin', 'sub_admin'),
+    ('user', 'user'),
 )
 
 class Channel(models.Model):
@@ -23,8 +23,7 @@ class Channel(models.Model):
     name = models.CharField(max_length=200)
     url = models.TextField()
     capacity = models.IntegerField(default=1)
-    channel_type = models.PositiveSmallIntegerField(default=1, choices=CHANNEL_TYPE)
-    slug = models.SlugField()
+    channel_type = models.CharField(default='private', choices=CHANNEL_TYPE, max_length=200)
     created_at = models.DateTimeField(default=timezone.now, null=False)
     updated_at = models.DateTimeField(default=timezone.now, null=False)
 
@@ -35,7 +34,7 @@ class Channel(models.Model):
 class ChannelUsers(models.Model):
     channel = models.ForeignKey(Channel,on_delete=models.CASCADE)
     user = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
-    role = models.PositiveSmallIntegerField(default=1, choices=ROLE_TYPE)
+    role = models.CharField(default='admin', choices=ROLE_TYPE, max_length=200)
     created_at = models.DateTimeField(default=timezone.now, null=False)
     updated_at = models.DateTimeField(default=timezone.now, null=False)
 

@@ -6,15 +6,146 @@ from rest_framework.response import Response
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import generics, permissions, status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from .models import *
 from .serializers import *
 from django.http import HttpResponseRedirect, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
+from home.models import Channel, ChannelUsers
+
 # Get the JWT settings, add these lines after the import/from lines
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+
+
+@api_view(['POST'])
+@csrf_exempt
+@permission_classes((permissions.AllowAny, ))
+def Registration(request):
+    if request.method == "POST":
+        username = request.data.get("username", "")
+        password = request.data.get("password", "")
+        password2 = request.data.get("password2", "")
+        email = request.data.get("email", "")
+        name = request.data.get("channel_name", "")
+        channel_type = request.data.get("channel_type", "")
+        url = request.data.get("channel_url", "")
+        capacity = 1
+        slug = request.data.get("slug", "")
+
+        if not username or not password or not email or not password2 or not name or not channel_type or not url:
+            return Response(
+                {'message': "username, email and passwords are required to register",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+            )
+        else:
+            if password != password2:
+                return Response(
+                    {'message': "Those passwords don't match.",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+                )
+
+        try:
+            user = CustomUser.objects.get(username=username)
+            return Response(
+                {'message': "Username has been taken already",'error':True,'status':status.HTTP_401_UNAUTHORIZED}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        except CustomUser.DoesNotExist:
+            pass
+
+        try:
+            user = CustomUser.objects.get(email=email)
+            return Response(
+                {'message': "Username has been taken already",'error':True,'status':status.HTTP_401_UNAUTHORIZED},status=status.HTTP_401_UNAUTHORIZED
+            )
+        except CustomUser.DoesNotExist:
+            pass
+
+        try:
+            chanel = Channel.objects.get(name__iexact=name)
+            return JsonResponse({'message': 'Channel name taken already','error':False,'status':status.HTTP_200_OK}, status=status.HTTP_400_BAD_REQUEST)
+        except Channel.DoesNotExist:
+            pass
+        
+        new_user = CustomUser.objects.create_user(
+            username=username, password=password, email=email
+        )
+        if channel_type == 1:
+            channel_type = 'private'
+        else:
+            channel_type = 'public'
+        
+        channel = Channel.objects.create(admin=new_user,name=name,url=url,capacity=capacity,channel_type=channel_type)
+        channel.save()
+
+        channeluser = ChannelUsers.objects.create(channel=channel,user=new_user,role='admin')
+        channeluser.save()
+
+        data = {
+            'id': new_user.id,
+            'username': new_user.username,
+            'email': new_user.email,
+            'channel_name': channel.name,
+        }
+
+        return Response({'message': 'Your account and channel has been created successfully','error':False,'status':status.HTTP_201_CREATED,'data':data,})
+
+
+@api_view(['POST'])
+@csrf_exempt
+@permission_classes((permissions.AllowAny, ))
+def RegistrationForExistingChannel(request):
+    if request.method == "POST":
+        username = request.data.get("username", "")
+        password = request.data.get("password", "")
+        password2 = request.data.get("password2", "")
+        email = request.data.get("email", "")
+        url = request.data.get("channel_url", "")
+
+        if not username or not password or not email or not password2 or not url:
+            return Response(
+                {'message': "username, email and passwords are required to register",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+            )
+        else:
+            if password != password2:
+                return Response(
+                    {'message': "Those passwords don't match.",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+                )
+
+        try:
+            user = CustomUser.objects.get(username=username)
+            return Response(
+                {'message': "Username has been taken already",'error':True,'status':status.HTTP_401_UNAUTHORIZED}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        except CustomUser.DoesNotExist:
+            pass
+
+        try:
+            user = CustomUser.objects.get(email=email)
+            return Response(
+                {'message': "Username has been taken already",'error':True,'status':status.HTTP_401_UNAUTHORIZED},status=status.HTTP_401_UNAUTHORIZED
+            )
+        except CustomUser.DoesNotExist:
+            pass
+        
+        new_user = CustomUser.objects.create_user(
+            username=username, password=password, email=email
+        )
+        
+        channel = Channel.objects.get(url=url)
+
+        channeluser = ChannelUsers.objects.create(channel=channel,user=new_user,role='user')
+        channeluser.save()
+        channel.capacity += 1
+        channel.save()
+
+        data = {
+            'id': new_user.id,
+            'username': new_user.username,
+            'email': new_user.email,
+            'channel_name': channel.name,
+        }
+
+        return Response({'message': 'Your account has been created and you have joined the channel successfully','error':False,'status':status.HTTP_201_CREATED,'data':data,})
 
 class UserListView(generics.ListCreateAPIView):
     permission_classes = (permissions.AllowAny,)

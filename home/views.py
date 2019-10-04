@@ -36,7 +36,6 @@ def CreateChannel(request):
         channeluser = ChannelUsers.objects.create(channel=channel,user=request.user,role=1)
         channeluser.save()
         
-        
         return JsonResponse({'message': 'Your channel has been created successfully','error':False,'status':status.HTTP_200_OK})
 
 @api_view(['POST'])
