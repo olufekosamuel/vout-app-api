@@ -122,11 +122,15 @@ Get channel information endpoint, to get information about a channel
 @permission_classes((permissions.IsAuthenticated, ))
 def GetChannelInfo(request, channel_id):
     try:
-        channel = Channel.objects.get(id=channel_id)
-        channel = ChannelSerializer(channel)
-        return Response({'message': 'success','error':False,'status':status.HTTP_201_CREATED,'data':channel.data,})
+        chanel = Channel.objects.get(id=channel_id)
+        channeluser = ChannelUsers.objects.get(user=request.user,channel=chanel)
     except Channel.DoesNotExist:
         return JsonResponse({'message': 'Channel does not exist','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+    except ChannelUsers.DoesNotExist:
+        return JsonResponse({'message': 'You dont have access to this channel','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+
+    channel = ChannelSerializer(chanel)
+    return Response({'message': 'success','error':False,'status':status.HTTP_201_CREATED,'data':channel.data,})
 """
 Verify channel endpoint, to check if a channel if exists or not in the platform
 """
