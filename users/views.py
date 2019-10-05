@@ -23,78 +23,77 @@ jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 @csrf_exempt
 @permission_classes((permissions.AllowAny, ))
 def Registration(request):
-    if request.method == "POST":
-        fullname = request.data.get("fullname", "")
-        password = request.data.get("password", "")
-        password2 = request.data.get("password2", "")
-        email = request.data.get("email", "")
-        country = request.data.get("user_country", "")
-        state = request.data.get("user_state", "")
-        name = request.data.get("channel_name", "")
-        channel_type = request.data.get("channel_type", "")
-        url = request.data.get("channel_url", "")
-        channel_country = request.data.get("channel_country", "")
-        channel_state = request.data.get("channel_state", "")
-        capacity = 1
+    fullname = request.data.get("fullname", "")
+    password = request.data.get("password", "")
+    password2 = request.data.get("password2", "")
+    email = request.data.get("email", "")
+    country = request.data.get("user_country", "")
+    state = request.data.get("user_state", "")
+    name = request.data.get("channel_name", "")
+    channel_type = request.data.get("channel_type", "")
+    url = request.data.get("channel_url", "")
+    channel_country = request.data.get("channel_country", "")
+    channel_state = request.data.get("channel_state", "")
+    capacity = 1
 
-        if not fullname or not password or not email or not password2 or not country or not state:
+    if not fullname or not password or not email or not password2 or not country or not state:
+        return Response(
+            {'message': "fullname, email, passwords and location are required to register",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+        )
+    elif not name or not channel_type or not url or not channel_country or not channel_state:
+        return Response(
+            {'message': "channel name, type, url and location are required to register",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+        )
+    else:
+        if password != password2:
             return Response(
-                {'message': "fullname, email, passwords and location are required to register",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+                {'message': "Those passwords don't match.",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
             )
-        elif not name or not channel_type or not url or not channel_country or not channel_state:
-            return Response(
-                {'message': "channel name, type, url and location are required to register",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
-            )
-        else:
-            if password != password2:
-                return Response(
-                    {'message': "Those passwords don't match.",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
-                )
 
-        try:
-            user = CustomUser.objects.get(email=email)
-            return Response(
-                {'message': "Email has been taken already",'error':True,'status':status.HTTP_401_UNAUTHORIZED},status=status.HTTP_401_UNAUTHORIZED
-            )
-        except CustomUser.DoesNotExist:
-            pass
+    try:
+        user = CustomUser.objects.get(email=email)
+        return Response(
+            {'message': "Email has been taken already",'error':True,'status':status.HTTP_401_UNAUTHORIZED},status=status.HTTP_401_UNAUTHORIZED
+        )
+    except CustomUser.DoesNotExist:
+        pass
 
-        try:
-            chanel = Channel.objects.get(name__iexact=name)
-            return JsonResponse({'message': 'Channel name taken already','error':False,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-        except Channel.DoesNotExist:
-            pass
-        
-        firstname = fullname.split()[0]
-        lastname = fullname.split()[1] if len(fullname.split()) > 1 else fullname.split()[0]
+    try:
+        chanel = Channel.objects.get(name__iexact=name)
+        return JsonResponse({'message': 'Channel name taken already','error':False,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+    except Channel.DoesNotExist:
+        pass
+    
+    firstname = fullname.split()[0]
+    lastname = fullname.split()[1] if len(fullname.split()) > 1 else fullname.split()[0]
 
-        new_user = CustomUser(email=email)
-        new_user.set_password(password)
-        new_user.first_name = firstname
-        new_user.last_name = lastname
-        new_user.country = country
-        new_user.state = state
-        new_user.save()
+    new_user = CustomUser(email=email)
+    new_user.set_password(password)
+    new_user.first_name = firstname
+    new_user.last_name = lastname
+    new_user.country = country
+    new_user.state = state
+    new_user.save()
 
-        if channel_type == 1:
-            channel_type = 'private'
-        else:
-            channel_type = 'public'
-        
-        channel = Channel.objects.create(admin=new_user,name=name,url=url,capacity=capacity,channel_type=channel_type,country=country,state=state)
-        channel.save()
+    if channel_type == 1:
+        channel_type = 'private'
+    else:
+        channel_type = 'public'
+    
+    channel = Channel.objects.create(admin=new_user,name=name,url=url,capacity=capacity,channel_type=channel_type,country=country,state=state)
+    channel.save()
 
-        channeluser = ChannelUsers.objects.create(channel=channel,user=new_user,role='admin')
-        channeluser.save()
+    channeluser = ChannelUsers.objects.create(channel=channel,user=new_user,role='admin')
+    channeluser.save()
 
-        data = {
-            'id': new_user.id,
-            'full name': fullname,
-            'email': new_user.email,
-            'channel_name': channel.name,
-        }
+    data = {
+        'id': new_user.id,
+        'full name': fullname,
+        'email': new_user.email,
+        'channel_name': channel.name,
+    }
 
-        return Response({'message': 'Your account and channel has been created successfully','error':False,'status':status.HTTP_201_CREATED,'data':data,})
+    return Response({'message': 'Your account and channel has been created successfully','error':False,'status':status.HTTP_201_CREATED,'data':data,})
 
 @api_view(['GET'])
 @csrf_exempt

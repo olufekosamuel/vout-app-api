@@ -79,6 +79,32 @@ def CreateChannel(request):
         
         return JsonResponse({'message': 'Your channel has been created successfully','data':data,'error':False,'status':status.HTTP_200_OK},status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+@csrf_exempt
+@permission_classes((permissions.IsAuthenticated, ))
+def GetAllChannel(request):
+    user = CustomUser.objects.get(email=request.user.email)
+    chanel = []
+    channels = ChannelUsers.objects.filter(user=user)
+
+    if channels:
+        for channel in channels:
+            chanel.append(channel.channel)
+    else:
+        return Response({'message': 'success','error':False,'status':status.HTTP_201_CREATED,'data':[]})
+
+    chanel = ChannelSerializer(chanel, many=True)
+    return Response({'message': 'success','error':False,'status':status.HTTP_201_CREATED,'data':chanel.data,})
+
+@api_view(['GET'])
+@csrf_exempt
+@permission_classes((permissions.IsAuthenticated, ))
+def GetPublicChannel(request):
+    user = CustomUser.objects.get(email=request.user.email)
+    channels = Channel.objects.filter(country=user.country,state=user.state,channel_type='public')
+    channel = ChannelSerializer(channels, many=True)
+    return Response({'message': 'success','error':False,'status':status.HTTP_201_CREATED,'data':channel.data,})
+
 
 @api_view(['POST'])
 @csrf_exempt
@@ -111,7 +137,7 @@ def Complain(request, channel_id):
             return JsonResponse({'message': 'Channel does not exist','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
         except ChannelUsers.DoesNotExist:
             return JsonResponse({'message': 'You dont have access to this channel','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-        send_mail('Test mail', 'Here is the message.', 'admin@voiceout.com', ['mololuwasamuel12@gmail.com'])
+        #send_mail('Test mail', 'Here is the message.', 'admin@voiceout.com', ['mololuwasamuel12@gmail.com'])
         complains = ChannelComplain.objects.filter(Channel=chanel).order_by('created_at')
         data = ComplainSerializer(complains, many=True)
         return Response({'message': 'Success','error':False,'status':status.HTTP_200_OK, 'data':data.data}, status=status.HTTP_200_OK)

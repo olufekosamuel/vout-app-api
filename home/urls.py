@@ -12,6 +12,8 @@ urlpatterns = [
     path('verify/',VerifyChannel, name='verify'),
     path('complains/',ComplainList, name='complainList' ),
     path('comments/',ReplyList, name='commentList' ),
-    path('',ListChannelView.as_view(), name='channel' ),
+    #path('',ListChannelView.as_view(), name='channel' ),
     path('makecomplain/<int:channel_id>/', Complain, name="complain"),
+    path('',GetAllChannel,name="getallchannel"),
+    path('public/',GetPublicChannel,name="getallpublicchannel"),
 ]
