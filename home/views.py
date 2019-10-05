@@ -102,6 +102,7 @@ def Complain(request, channel_id):
     if request.method == "POST": 
         pass
     else:
+        send_mail('Test mail', 'Here is the message.', 'admin@voiceout.com', ['mololuwasamuel12@gmail.com'])
         try:
             chanel = Channel.objects.get(id=channel_id)
             channeluser = ChannelUsers.objects.get(user=request.user,channel=chanel)
