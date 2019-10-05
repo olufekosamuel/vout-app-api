@@ -115,6 +115,19 @@ def GetPublicChannel(request):
 
 
 """
+Get channel information endpoint, to get information about a channel
+"""
+@api_view(['GET'])
+@csrf_exempt
+@permission_classes((permissions.IsAuthenticated, ))
+def GetChannelInfo(request, channel_id):
+    try:
+        channel = Channel.objects.get(id=channel_id)
+        channel = ChannelSerializer(channel)
+        return Response({'message': 'success','error':False,'status':status.HTTP_201_CREATED,'data':channel.data,})
+    except Channel.DoesNotExist:
+        return JsonResponse({'message': 'Channel does not exist','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+"""
 Verify channel endpoint, to check if a channel if exists or not in the platform
 """
 @api_view(['POST'])

@@ -16,4 +16,5 @@ urlpatterns = [
     path('makecomplain/<int:channel_id>/', Complain, name="complain"),
     path('',GetAllChannel,name="getallchannel"),
     path('public/',GetPublicChannel,name="getallpublicchannel"),
+    path('info/<int:channel_id>/',GetChannelInfo,name="getchannelinfo")
 ]
