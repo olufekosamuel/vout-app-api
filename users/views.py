@@ -18,7 +18,10 @@ from home.models import Channel, ChannelUsers
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 
-
+"""
+Registration endpoint, to register a new user on the platform 
+and create a new channel after registrations
+"""
 @api_view(['POST'])
 @csrf_exempt
 @permission_classes((permissions.AllowAny, ))
@@ -95,6 +98,10 @@ def Registration(request):
 
     return Response({'message': 'Your account and channel has been created successfully','error':False,'status':status.HTTP_201_CREATED,'data':data,})
 
+
+"""
+Get user info endpoint, to get informations about an authenticated user
+"""
 @api_view(['GET'])
 @csrf_exempt
 @permission_classes((permissions.IsAuthenticated, ))
@@ -218,6 +225,10 @@ class UserListView(generics.ListCreateAPIView):
         }
         return Response({'message': 'Your account has been created successfully','error':False,'status':status.HTTP_201_CREATED,'data':data,})
 
+
+"""
+Login endpoint, to authenticate a user and provide a jwt for the user
+"""
 class LoginView(generics.CreateAPIView):
     """
     POST auth/login/
@@ -232,6 +243,10 @@ class LoginView(generics.CreateAPIView):
         email = request.data["email"]
         password = request.data["password"]
         
+        if not email or not password:
+            return Response(
+                {'message': "email and password are required to login",'error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST
+            )
         user = authenticate(request, email=email, password=password)
         if user is not None:
             # login saves the user’s ID in the session,
@@ -244,8 +259,3 @@ class LoginView(generics.CreateAPIView):
             if serializer.is_valid():
                 return JsonResponse({'message': 'logged in','error':False,'status':status.HTTP_200_OK,'data':serializer.data,})
         return Response({'message': 'Wrong credentials','error':True,'status':status.HTTP_401_UNAUTHORIZED})
-
-class LogoutView(APIView):
-    def get(self, request, format=None):
-        logout(request)
-        return Response({'message': 'Your account has been logged out successfully','error':False,'status':status.HTTP_200_OK})

@@ -13,5 +13,5 @@ urlpatterns = [
     path('info/', GetUserInfo, name='userinfo'),
     path('signup/',Registration, name='signup'),
     path('login/', csrf_exempt(LoginView.as_view()), name="login"),
-    path('logout/', csrf_exempt(LogoutView.as_view()), name="logout"),
+    #path('logout/', csrf_exempt(LogoutView.as_view()), name="logout"),
 ]

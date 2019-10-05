@@ -22,7 +22,7 @@ def handler404(request, exception):
 def Handler500(request):
     raise NotFound(detail="Error 500, server error", code=500)
 
-
+#function to customize error messages response to clients
 def custom_exception_handler(exc, context):
     # Call REST framework's default exception handler first,
     # to get the standard error response.
@@ -41,6 +41,7 @@ def custom_exception_handler(exc, context):
     return response
 
 
+"""
 @api_view(['POST'])
 @csrf_exempt
 @permission_classes((permissions.IsAuthenticated, ))
@@ -78,7 +79,11 @@ def CreateChannel(request):
         }
         
         return JsonResponse({'message': 'Your channel has been created successfully','data':data,'error':False,'status':status.HTTP_200_OK},status=status.HTTP_200_OK)
+"""
 
+"""
+Get all channel endpoint, to get all channels a user is on, in the platform.
+"""
 @api_view(['GET'])
 @csrf_exempt
 @permission_classes((permissions.IsAuthenticated, ))
@@ -96,6 +101,9 @@ def GetAllChannel(request):
     chanel = ChannelSerializer(chanel, many=True)
     return Response({'message': 'success','error':False,'status':status.HTTP_201_CREATED,'data':chanel.data,})
 
+"""
+Get Public channel endpoint, to get public channels available around a users location.
+"""
 @api_view(['GET'])
 @csrf_exempt
 @permission_classes((permissions.IsAuthenticated, ))
@@ -106,6 +114,9 @@ def GetPublicChannel(request):
     return Response({'message': 'success','error':False,'status':status.HTTP_201_CREATED,'data':channel.data,})
 
 
+"""
+Verify channel endpoint, to check if a channel if exists or not in the platform
+"""
 @api_view(['POST'])
 @csrf_exempt
 @permission_classes((permissions.AllowAny, ))
@@ -122,14 +133,39 @@ def VerifyChannel(request):
             except Channel.DoesNotExist:
                 return JsonResponse({'message': 'Channel does not exist','error':False,'status':status.HTTP_200_OK}, status=status.HTTP_200_OK)
 
+"""
+Complain endpoint, to get list of complains in a particular channel
+also to post complain to a particular user.
+"""
 @api_view(['POST','GET'])
 @csrf_exempt
 @permission_classes((permissions.IsAuthenticated, ))
 def Complain(request, channel_id):
     if request.method == "POST": 
-        pass
-    else:
+        title = request.data.get("title", "")
+        description = request.data.get("description", "")
+
+        if not title or not description:
+            return JsonResponse({'message': 'Title and description are required','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
         
+        try:
+            chanel = Channel.objects.get(id=channel_id)
+            channeluser = ChannelUsers.objects.get(user=request.user,channel=chanel)
+        except Channel.DoesNotExist:
+            return JsonResponse({'message': 'Channel does not exist','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+        except ChannelUsers.DoesNotExist:
+            return JsonResponse({'message': 'You dont have access to this channel','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+
+        complain = ChannelComplain.objects.create(title=title,description=description,user=channeluser,Channel=chanel,is_verified=False,is_irrelevant=False,is_solved=False)
+        complain.save()
+        data = {
+            'title': complain.title,
+            'description': complain.description,
+            'date': complain.updated_at.date(),
+            'time': complain.updated_at.time(),
+        }
+        return Response({'message': 'success','error':False,'status':status.HTTP_200_OK, 'data':data}, status=status.HTTP_200_OK)
+    else:
         try:
             chanel = Channel.objects.get(id=channel_id)
             channeluser = ChannelUsers.objects.get(user=request.user,channel=chanel)
@@ -142,6 +178,23 @@ def Complain(request, channel_id):
         data = ComplainSerializer(complains, many=True)
         return Response({'message': 'Success','error':False,'status':status.HTTP_200_OK, 'data':data.data}, status=status.HTTP_200_OK)
 
+
+"""
+Complain endpoint, to get list of complains in a particular channel
+also to post complain to a particular user.
+"""
+@api_view(['POST','GET'])
+@csrf_exempt
+@permission_classes((permissions.IsAuthenticated, ))
+def Comment(request, complain_id):
+    if request.method == "POST": 
+        pass
+    else:
+        pass
+
+"""
+Complain list endpoint, to get list of complains made by a user on every channel
+"""
 @api_view(['GET'])
 @csrf_exempt
 @permission_classes((permissions.IsAuthenticated, ))
@@ -156,7 +209,9 @@ def ComplainList(request):
             data = ComplainSerializer(data, many=True)
             return Response({'message': 'Success','error':False,'status':status.HTTP_200_OK, 'data':data.data}, status=status.HTTP_200_OK)
             
-
+"""
+Comment list endpoint, to get list of comments made on a user complains
+"""
 @api_view(['GET'])
 @csrf_exempt
 @permission_classes((permissions.IsAuthenticated, ))
