@@ -10,6 +10,7 @@ app_name = "users"
 urlpatterns = [
     path('register/', csrf_exempt(UserListView.as_view()), name="register"),
     #path('signup2/',RegistrationForExistingChannel, name='signup2'),
+    path('info/', GetUserInfo, name='userinfo'),
     path('signup/',Registration, name='signup'),
     path('login/', csrf_exempt(LoginView.as_view()), name="login"),
     path('logout/', csrf_exempt(LogoutView.as_view()), name="logout"),

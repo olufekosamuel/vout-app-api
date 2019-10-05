@@ -14,6 +14,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import exception_handler
 from django.http import HttpResponse
 from django.core.mail import send_mail
+from django.conf import settings
 
 def handler404(request, exception):
     raise NotFound(detail="Error 404, page not found", code=404)
@@ -85,8 +86,7 @@ def CreateChannel(request):
 def VerifyChannel(request):
     if request.method == "POST":
         name = request.data.get("name", "")
-        send_mail('Test mail', 'Here is the message.', 'admin@voiceout.com', ['mololuwasamuel12@gmail.com'])
-        
+
         if not name:
             return JsonResponse({'message': 'Channel name cannot be empty','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -103,7 +103,7 @@ def Complain(request, channel_id):
     if request.method == "POST": 
         pass
     else:
-        send_mail('Test mail', 'Here is the message.', 'admin@voiceout.com', ['mololuwasamuel12@gmail.com'])
+        
         try:
             chanel = Channel.objects.get(id=channel_id)
             channeluser = ChannelUsers.objects.get(user=request.user,channel=chanel)

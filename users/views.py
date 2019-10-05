@@ -96,6 +96,21 @@ def Registration(request):
 
         return Response({'message': 'Your account and channel has been created successfully','error':False,'status':status.HTTP_201_CREATED,'data':data,})
 
+@api_view(['GET'])
+@csrf_exempt
+@permission_classes((permissions.IsAuthenticated, ))
+def GetUserInfo(request):
+    user = CustomUser.objects.get(email=request.user.email)
+    data = {
+        'id': user.id,
+        'fullname': user.first_name+" "+user.last_name,
+        'email': user.email,
+        'state': user.state,
+        'country': user.country
+    }
+    return Response({'message': 'success','error':False,'status':status.HTTP_201_CREATED,'data':data,})
+
+
 @api_view(['POST'])
 @csrf_exempt
 @permission_classes((permissions.AllowAny, ))
