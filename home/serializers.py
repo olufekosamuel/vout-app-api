@@ -13,6 +13,17 @@ class ComplainSerializer(serializers.ModelSerializer):
         model = ChannelComplain
         fields = '__all__'
 
+class ChannelUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChannelUsers
+        fields = '__all__'
+
+class Complain2Serializer(serializers.ModelSerializer):
+    ChannelUser = ChannelUserSerializer(many=True)
+    class Meta:
+        model = ChannelComplain
+        fields = '__all__'
+
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChannelComplainComment
