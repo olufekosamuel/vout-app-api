@@ -85,7 +85,8 @@ def CreateChannel(request):
 def VerifyChannel(request):
     if request.method == "POST":
         name = request.data.get("name", "")
-
+        send_mail('Test mail', 'Here is the message.', 'admin@voiceout.com', ['mololuwasamuel12@gmail.com'])
+        
         if not name:
             return JsonResponse({'message': 'Channel name cannot be empty','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
         else:
