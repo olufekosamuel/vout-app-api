@@ -13,6 +13,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import exception_handler
 from django.http import HttpResponse
+from django.core.mail import send_mail
 
 def handler404(request, exception):
     raise NotFound(detail="Error 404, page not found", code=404)
@@ -92,7 +93,7 @@ def VerifyChannel(request):
                 chanel = Channel.objects.get(name__iexact=name)
                 return JsonResponse({'message': 'Channel exist','error':False,'status':status.HTTP_200_OK}, status=status.HTTP_200_OK)
             except Channel.DoesNotExist:
-                return JsonResponse({'message': 'Channel does not exist','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse({'message': 'Channel does not exist','error':True,'status':status.HTTP_200_OK}, status=status.HTTP_200_OK)
 
 @api_view(['POST','GET'])
 @csrf_exempt
@@ -108,7 +109,8 @@ def Complain(request, channel_id):
             return JsonResponse({'message': 'Channel does not exist','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
         except ChannelUsers.DoesNotExist:
             return JsonResponse({'message': 'You dont have access to this channel','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-        complains = ChannelComplain.objects.filter(Channel=chanel).order_by('created_at').first()
+        send_mail('Test mail', 'Here is the message.', 'admin@voiceout.com', ['mololuwasamuel12@gmail.com'])
+        complains = ChannelComplain.objects.filter(Channel=chanel).order_by('created_at')
         data = ComplainSerializer(complains, many=True)
         return Response({'message': 'Success','error':False,'status':status.HTTP_200_OK, 'data':data.data}, status=status.HTTP_200_OK)
 
