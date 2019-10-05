@@ -93,7 +93,7 @@ def VerifyChannel(request):
                 chanel = Channel.objects.get(name__iexact=name)
                 return JsonResponse({'message': 'Channel exist','error':False,'status':status.HTTP_200_OK}, status=status.HTTP_200_OK)
             except Channel.DoesNotExist:
-                return JsonResponse({'message': 'Channel does not exist','error':True,'status':status.HTTP_200_OK}, status=status.HTTP_200_OK)
+                return JsonResponse({'message': 'Channel does not exist','error':False,'status':status.HTTP_200_OK}, status=status.HTTP_200_OK)
 
 @api_view(['POST','GET'])
 @csrf_exempt
