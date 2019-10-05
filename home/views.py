@@ -101,6 +101,7 @@ def GetAllChannel(request):
     chanel = ChannelSerializer(chanel, many=True)
     return Response({'message': 'success','error':False,'status':status.HTTP_201_CREATED,'data':chanel.data,})
 
+
 """
 Get Public channel endpoint, to get public channels available around a users location.
 """
@@ -131,6 +132,8 @@ def GetChannelInfo(request, channel_id):
 
     channel = ChannelSerializer(chanel)
     return Response({'message': 'success','error':False,'status':status.HTTP_201_CREATED,'data':channel.data,})
+
+
 """
 Verify channel endpoint, to check if a channel if exists or not in the platform
 """
@@ -164,7 +167,6 @@ def Complain(request, channel_id):
 
         if not title or not description:
             return JsonResponse({'message': 'Title and description are required','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
-        
         try:
             chanel = Channel.objects.get(id=channel_id)
             channeluser = ChannelUsers.objects.get(user=request.user,channel=chanel)
@@ -197,7 +199,7 @@ def Complain(request, channel_id):
 
 
 """
-Complain endpoint, to get list of complains in a particular channel
+Comment endpoint, to get list of complains in a particular channel
 also to post complain to a particular user.
 """
 @api_view(['POST','GET'])
@@ -205,9 +207,41 @@ also to post complain to a particular user.
 @permission_classes((permissions.IsAuthenticated, ))
 def Comment(request, complain_id):
     if request.method == "POST": 
-        pass
-    else:
-        pass
+        description = request.data.get("description", "")
+        if not description:
+            return JsonResponse({'message': 'Description are required','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            complain = ChannelComplain.objects.get(id=complain_id)
+            channeluser = ChannelUsers.objects.get(user=request.user,channel=complain.Channel)
+        except ChannelComplain.DoesNotExist:
+            return JsonResponse({'message': 'Complain does not exist','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+        except ChannelUsers.DoesNotExist:
+            return JsonResponse({'message': 'You dont have access to this channel','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+        
+        comment = ChannelComplainComment.objects.create(Complain=complain,user=channeluser,description=description)
+        comment.save()
+
+        data = {
+            'user': request.user.id,
+            'Complain': complain_id,
+            'description': description,
+            'date': complain.updated_at.date(),
+            'time': complain.updated_at.time(),
+        }
+
+        return Response({'message': 'Success','error':False,'status':status.HTTP_200_OK, 'data':data}, status=status.HTTP_200_OK)
+    elif request.method == "GET":
+        try:
+            complain = ChannelComplain.objects.get(id=complain_id)
+            channeluser = ChannelUsers.objects.get(user=request.user,channel=complain.Channel)
+        except ChannelComplain.DoesNotExist:
+            return JsonResponse({'message': 'Complain does not exist','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+        except ChannelUsers.DoesNotExist:
+            return JsonResponse({'message': 'You dont have access to this channel','error':True,'status':status.HTTP_400_BAD_REQUEST}, status=status.HTTP_400_BAD_REQUEST)
+        
+        comments = ChannelComplainComment.objects.filter(Complain=complain)
+        comments = CommentSerializer(comments, many=True)
+        return Response({'message': 'Success','error':False,'status':status.HTTP_200_OK, 'data':comments.data}, status=status.HTTP_200_OK)
 
 """
 Complain list endpoint, to get list of complains made by a user on every channel
